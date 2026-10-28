@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Resume & Portfolio Builder</title>
+  <meta name="description" content="Production-ready AI-powered platform to craft ATS-optimized resumes, cover letters, LinkedIn profiles, and live interactive portfolios with Gemini AI and Firebase." />
+  <meta property="og:title" content="AI Resume & Portfolio Builder" />
+  <meta property="og:description" content="Production-ready AI-powered platform to craft ATS-optimized resumes, cover letters, LinkedIn profiles, and live interactive portfolios with Gemini AI and Firebase." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Tailwind CSS CDN for utility classes -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- jsPDF & html2canvas for PDF Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- App Stylesheet -->
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="bg-[#090d16] text-slate-100 min-h-screen flex flex-col relative selection:bg-blue-600 selection:text-white">
+
+  <!-- Ambient Glow Effects -->
+  <div class="glow-blob w-[500px] h-[500px] bg-blue-600 top-[-100px] left-[-150px]"></div>
+  <div class="glow-blob w-[600px] h-[600px] bg-purple-600 top-[20%] right-[-200px]"></div>
+  <div class="glow-blob w-[450px] h-[450px] bg-emerald-600 bottom-[-100px] left-[30%]"></div>
+
+  <!-- Main Navigation Header -->
+  <header class="sticky top-0 z-40 glass-panel border-b border-white/10 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Brand Logo -->
+      <a href="#landing" data-nav="landing" class="flex items-center gap-3 group cursor-pointer">
+        <div class="w-10 h-10 rounded-xl gradient-btn flex items-center justify-center shadow-lg group-hover:scale-105 transition">
+          <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <span class="text-lg font-bold tracking-tight heading-font flex items-center gap-1.5">
+            CareerForge <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-mono border border-blue-500/30">AI 3.8</span>
+          </span>
+          <span class="text-[11px] block opacity-60 font-medium">Resume & Portfolio Suite</span>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation Menu -->
+      <nav class="hidden lg:flex items-center gap-1 bg-white/5 p-1 rounded-2xl border border-white/10 backdrop-blur-md">
+        <button data-nav="landing" class="nav-item px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 text-blue-400 bg-white/10">
+          <i data-lucide="home" class="w-3.5 h-3.5"></i> Overview
+        </button>
+        <button data-nav="dashboard" class="nav-item px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 opacity-70 hover:opacity-100">
+          <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i> Dashboard
+        </button>
+        <button data-nav="resume" class="nav-item px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 opacity-70 hover:opacity-100">
+          <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Resume Builder
+        </button>
+        <button data-nav="coverletter" class="nav-item px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 opacity-70 hover:opacity-100">
+          <i data-lucide="mail" class="w-3.5 h-3.5"></i> Cover Letter
+        </button>
+        <button data-nav="linkedin" class="nav-item px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 opacity-70 hover:opacity-100">
+          <i data-lucide="linkedin" class="w-3.5 h-3.5"></i> LinkedIn
+        </button>
+        <button data-nav="portfolio" class="nav-item px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 opacity-70 hover:opacity-100">
+          <i data-lucide="globe" class="w-3.5 h-3.5"></i> Portfolio
+        </button>
+        <button data-nav="settings" class="nav-item px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 opacity-70 hover:opacity-100">
+          <i data-lucide="settings" class="w-3.5 h-3.5"></i> Deploy & Config
+        </button>
+      </nav>
+
+      <!-- Right Action Controls -->
+      <div class="flex items-center gap-3">
+        <!-- AI Engine Status Badge -->
+        <div id="ai-status-indicator" class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" title="Connected to Gemini AI Backend">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Gemini AI 3.8 Active</span>
+        </div>
+
+        <!-- Theme Switcher (Dark/Light) -->
+        <button id="theme-toggle" class="w-9 h-9 rounded-xl glass-card flex items-center justify-center hover:border-blue-500/40 transition" aria-label="Toggle Theme">
+          <i data-lucide="sun" class="w-4 h-4 hidden dark:block text-amber-300"></i>
+          <i data-lucide="moon" class="w-4 h-4 block dark:hidden text-slate-700"></i>
+        </button>
+
+        <!-- Quick Start CTA -->
+        <button data-nav="resume" class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold gradient-btn">
+          <span>Build Resume</span>
+          <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+        </button>
+
+        <!-- Mobile Menu Toggle Button -->
+        <button id="mobile-menu-btn" class="lg:hidden w-9 h-9 rounded-xl glass-card flex items-center justify-center" aria-label="Toggle Navigation">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobile-nav" class="hidden lg:hidden border-t border-white/10 glass-panel px-4 py-4 space-y-2">
+      <button data-nav="landing" class="mobile-nav-link w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-3 bg-white/10 text-blue-400">
+        <i data-lucide="home" class="w-4 h-4"></i> Overview
+      </button>
+      <button data-nav="dashboard" class="mobile-nav-link w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-3 opacity-70 hover:opacity-100">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+      </button>
+      <button data-nav="resume" class="mobile-nav-link w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-3 opacity-70 hover:opacity-100">
+        <i data-lucide="file-text" class="w-4 h-4"></i> Resume Builder (ATS)
+      </button>
+      <button data-nav="coverletter" class="mobile-nav-link w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-3 opacity-70 hover:opacity-100">
+        <i data-lucide="mail" class="w-4 h-4"></i> Cover Letter Generator
+      </button>
+      <button data-nav="linkedin" class="mobile-nav-link w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-3 opacity-70 hover:opacity-100">
+        <i data-lucide="linkedin" class="w-4 h-4"></i> LinkedIn Optimizer
+      </button>
+      <button data-nav="portfolio" class="mobile-nav-link w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-3 opacity-70 hover:opacity-100">
+        <i data-lucide="globe" class="w-4 h-4"></i> Portfolio Generator
+      </button>
+      <button data-nav="settings" class="mobile-nav-link w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-3 opacity-70 hover:opacity-100">
+        <i data-lucide="settings" class="w-4 h-4"></i> Settings & Firebase Deploy
+      </button>
+    </div>
+  </header>
+
+  <!-- Page View Container (Single Page Application Router) -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+
+    <!-- ==================================================================== -->
+    <!-- 1. LANDING PAGE VIEW                                                -->
+    <!-- ==================================================================== -->
+    <div id="view-landing" class="page-view space-y-20">
+      <!-- Hero Section -->
+      <section class="text-center pt-8 pb-12 max-w-4xl mx-auto space-y-6">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold glass-card border border-blue-500/30 text-blue-400">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 animate-spin"></i>
+          <span>Next-Generation Career AI Engine</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight heading-font leading-tight">
+          Land 3.5x More Interviews with <span class="gradient-text">Gemini AI</span>
+        </h1>
+
+        <p class="text-base sm:text-xl opacity-75 max-w-2xl mx-auto leading-relaxed">
+          Create ATS-optimized resumes, tailored cover letters, magnetic LinkedIn profiles, and publish live interactive portfolio websites in seconds.
+        </p>
+
+        <!-- CTA Action Buttons -->
+        <div class="flex flex-wrap items-center justify-center gap-4 pt-4">
+          <button data-nav="resume" class="px-8 py-4 rounded-2xl font-bold text-sm gradient-btn flex items-center gap-2.5 shadow-xl">
+            <i data-lucide="zap" class="w-4 h-4"></i>
+            <span>Create ATS Resume Free</span>
+          </button>
+          <button data-nav="portfolio" class="px-8 py-4 rounded-2xl font-bold text-sm glass-card hover:border-blue-500/50 flex items-center gap-2.5 transition">
+            <i data-lucide="globe" class="w-4 h-4 text-cyan-400"></i>
+            <span>Generate Live Portfolio</span>
+          </button>
+        </div>
+
+        <!-- Social Proof Stats -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-10 max-w-3xl mx-auto">
+          <div class="glass-card p-4 rounded-2xl text-center">
+            <div class="text-2xl sm:text-3xl font-extrabold gradient-text heading-font">98.4%</div>
+            <div class="text-xs opacity-60 font-medium mt-1">ATS Pass Rate</div>
+          </div>
+          <div class="glass-card p-4 rounded-2xl text-center">
+            <div class="text-2xl sm:text-3xl font-extrabold text-emerald-400 heading-font">3.5x</div>
+            <div class="text-xs opacity-60 font-medium mt-1">Interview Rate</div>
+          </div>
+          <div class="glass-card p-4 rounded-2xl text-center">
+            <div class="text-2xl sm:text-3xl font-extrabold text-cyan-400 heading-font">100k+</div>
+            <div class="text-xs opacity-60 font-medium mt-1">Resumes Scored</div>
+          </div>
+          <div class="glass-card p-4 rounded-2xl text-center">
+            <div class="text-2xl sm:text-3xl font-extrabold text-purple-400 heading-font">0s</div>
+            <div class="text-xs opacity-60 font-medium mt-1">Setup / No Auth Req</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Live Interactive ATS Demonstration Card -->
+      <section class="glass-card p-6 sm:p-10 rounded-3xl border border-white/15 max-w-5xl mx-auto">
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-8">
+          <div class="space-y-4 max-w-lg">
+            <div class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400">
+              <i data-lucide="shield-check" class="w-4 h-4"></i> Real-time ATS Parsing Engine
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-bold heading-font">
+              Score High Against Taleo, Workday & Greenhouse
+            </h2>
+            <p class="text-sm opacity-75 leading-relaxed">
+              Our Gemini 3.8 AI model inspects your experience against target job descriptions, rewriting bullet points using Google's X-Y-Z formula to optimize recruiter keyword density without keyword stuffing.
+            </p>
+            <div class="flex flex-wrap gap-2 pt-2">
+              <span class="px-3 py-1 rounded-lg text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">✓ Distributed Systems</span>
+              <span class="px-3 py-1 rounded-lg text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">✓ Cloud Infrastructure</span>
+              <span class="px-3 py-1 rounded-lg text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">✓ Latency Optimization</span>
+              <span class="px-3 py-1 rounded-lg text-xs font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20">+42 Keywords</span>
+            </div>
+            <div class="pt-4">
+              <button data-nav="resume" class="text-xs font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1.5 transition">
+                <span>Try the ATS Resume Builder</span> <i data-lucide="chevron-right" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Interactive Score Gauge Preview -->
+          <div class="relative w-64 h-64 flex flex-col items-center justify-center rounded-full glass-panel border border-emerald-500/30 p-6 radar-glow">
+            <div class="text-5xl font-extrabold heading-font text-emerald-400">96</div>
+            <div class="text-xs uppercase font-bold tracking-widest text-emerald-300 mt-1">ATS Score</div>
+            <div class="text-[11px] opacity-60 text-center mt-2">Ranked in Top 2% of Candidate Profiles</div>
+            <div class="mt-3 flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-500/20 px-2.5 py-1 rounded-full">
+              <i data-lucide="check-circle-2" class="w-3 h-3"></i> Ready to Apply
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4 Core AI Engines Grid -->
+      <section class="space-y-8">
+        <div class="text-center max-w-2xl mx-auto">
+          <h2 class="text-xs uppercase font-bold tracking-widest text-blue-400 mb-2">Complete Career Suite</h2>
+          <h3 class="text-3xl sm:text-4xl font-bold heading-font">Everything You Need to Stand Out</h3>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Card 1: Resume Builder -->
+          <div class="glass-card p-6 rounded-2xl flex flex-col justify-between hover:border-blue-500/50 transition">
+            <div class="space-y-4">
+              <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                <i data-lucide="file-text" class="w-6 h-6"></i>
+              </div>
+              <h4 class="text-xl font-bold heading-font">ATS Resume Builder</h4>
+              <p class="text-xs opacity-75 leading-relaxed">
+                Transform rough experience into quantifiable, ATS-compliant resumes with real-time scoring and 1-click vector PDF export.
+              </p>
+            </div>
+            <button data-nav="resume" class="mt-6 text-xs font-semibold text-blue-400 flex items-center gap-1 hover:underline">
+              Build Resume &rarr;
+            </button>
+          </div>
+
+          <!-- Card 2: Cover Letter Generator -->
+          <div class="glass-card p-6 rounded-2xl flex flex-col justify-between hover:border-purple-500/50 transition">
+            <div class="space-y-4">
+              <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                <i data-lucide="mail-open" class="w-6 h-6"></i>
+              </div>
+              <h4 class="text-xl font-bold heading-font">Cover Letter Writer</h4>
+              <p class="text-xs opacity-75 leading-relaxed">
+                Generate highly persuasive, custom-tailored cover letters that directly match any target company's job description and culture.
+              </p>
+            </div>
+            <button data-nav="coverletter" class="mt-6 text-xs font-semibold text-purple-400 flex items-center gap-1 hover:underline">
+              Generate Letter &rarr;
+            </button>
+          </div>
+
+          <!-- Card 3: LinkedIn Optimizer -->
+          <div class="glass-card p-6 rounded-2xl flex flex-col justify-between hover:border-cyan-500/50 transition">
+            <div class="space-y-4">
+              <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                <i data-lucide="linkedin" class="w-6 h-6"></i>
+              </div>
+              <h4 class="text-xl font-bold heading-font">LinkedIn Optimizer</h4>
+              <p class="text-xs opacity-75 leading-relaxed">
+                Generate 3 viral headline options, story-driven About sections, recruiter keyword suggestions, and algorithm reach tactics.
+              </p>
+            </div>
+            <button data-nav="linkedin" class="mt-6 text-xs font-semibold text-cyan-400 flex items-center gap-1 hover:underline">
+              Optimize Profile &rarr;
+            </button>
+          </div>
+
+          <!-- Card 4: Portfolio Generator -->
+          <div class="glass-card p-6 rounded-2xl flex flex-col justify-between hover:border-emerald-500/50 transition">
+            <div class="space-y-4">
+              <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <i data-lucide="laptop" class="w-6 h-6"></i>
+              </div>
+              <h4 class="text-xl font-bold heading-font">Portfolio Generator</h4>
+              <p class="text-xs opacity-75 leading-relaxed">
+                Generate and preview responsive, modern web portfolio sites with project cards, stats, and download ready-to-deploy HTML code.
+              </p>
+            </div>
+            <button data-nav="portfolio" class="mt-6 text-xs font-semibold text-emerald-400 flex items-center gap-1 hover:underline">
+              Create Portfolio &rarr;
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom CTA Banner -->
+      <section class="glass-panel p-8 sm:p-12 rounded-3xl border border-white/20 text-center relative overflow-hidden">
+        <div class="relative z-10 max-w-2xl mx-auto space-y-4">
+          <h3 class="text-3xl font-extrabold heading-font">Ready to Fast-Track Your Dream Job?</h3>
+          <p class="text-sm opacity-80 leading-relaxed">
+            Join thousands of ambitious engineers, designers, and managers securing offers at Google, Meta, Amazon, and cutting-edge startups.
+          </p>
+          <div class="pt-4 flex flex-wrap items-center justify-center gap-4">
+            <button data-nav="resume" class="px-8 py-3.5 rounded-xl font-bold text-sm gradient-btn">
+              Get Started Now
+            </button>
+            <button data-nav="dashboard" class="px-6 py-3.5 rounded-xl font-semibold text-sm glass-card hover:border-white/40">
+              Open Dashboard
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- 2. DASHBOARD VIEW                                                   -->
+    <!-- ==================================================================== -->
+    <div id="view-dashboard" class="page-view hidden space-y-8">
+      <!-- Dashboard Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
+        <div>
+          <h1 class="text-3xl font-bold heading-font">Career Command Center</h1>
+          <p class="text-xs sm:text-sm opacity-70 mt-1">Manage your resumes, cover letters, portfolios, and ATS audit metrics.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="dashboard-new-resume-btn" data-nav="resume" class="gradient-btn px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
+            <i data-lucide="plus" class="w-4 h-4"></i> New Resume
+          </button>
+          <button id="dashboard-refresh-btn" class="glass-card px-3 py-2 rounded-xl text-xs font-semibold hover:border-blue-500/40 flex items-center gap-1.5 transition">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Stats Row -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="glass-card p-5 rounded-2xl">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium opacity-70">Resumes Created</span>
+            <i data-lucide="file-text" class="w-4 h-4 text-blue-400"></i>
+          </div>
+          <div class="text-3xl font-extrabold heading-font mt-2" id="stat-resumes-count">3</div>
+          <div class="text-[11px] text-emerald-400 font-medium mt-1 flex items-center gap-1">
+            <i data-lucide="trending-up" class="w-3 h-3"></i> Top ATS Score: 96%
+          </div>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium opacity-70">Cover Letters</span>
+            <i data-lucide="mail" class="w-4 h-4 text-purple-400"></i>
+          </div>
+          <div class="text-3xl font-extrabold heading-font mt-2" id="stat-letters-count">2</div>
+          <div class="text-[11px] opacity-60 font-medium mt-1">Tailored for Google & Tech</div>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium opacity-70">Live Portfolios</span>
+            <i data-lucide="globe" class="w-4 h-4 text-cyan-400"></i>
+          </div>
+          <div class="text-3xl font-extrabold heading-font mt-2" id="stat-portfolios-count">1</div>
+          <div class="text-[11px] text-cyan-400 font-medium mt-1">Exportable Standalone HTML</div>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium opacity-70">Average ATS Score</span>
+            <i data-lucide="award" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <div class="text-3xl font-extrabold heading-font text-emerald-400 mt-2" id="stat-avg-score">94%</div>
+          <div class="text-[11px] text-emerald-300 font-medium mt-1">Exceeds 90% Threshold</div>
+        </div>
+      </div>
+
+      <!-- Quick Action Cards -->
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div data-nav="resume" class="glass-card p-5 rounded-2xl cursor-pointer hover:border-blue-500/50 group transition">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center group-hover:scale-110 transition">
+              <i data-lucide="file-plus" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="text-sm font-bold">Resume Builder</div>
+              <div class="text-[11px] opacity-60">ATS scoring & PDF export</div>
+            </div>
+          </div>
+        </div>
+
+        <div data-nav="coverletter" class="glass-card p-5 rounded-2xl cursor-pointer hover:border-purple-500/50 group transition">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center group-hover:scale-110 transition">
+              <i data-lucide="pen-tool" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="text-sm font-bold">Cover Letter</div>
+              <div class="text-[11px] opacity-60">Company matching generator</div>
+            </div>
+          </div>
+        </div>
+
+        <div data-nav="linkedin" class="glass-card p-5 rounded-2xl cursor-pointer hover:border-cyan-500/50 group transition">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center group-hover:scale-110 transition">
+              <i data-lucide="share-2" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="text-sm font-bold">LinkedIn Optimizer</div>
+              <div class="text-[11px] opacity-60">Headlines & About sections</div>
+            </div>
+          </div>
+        </div>
+
+        <div data-nav="portfolio" class="glass-card p-5 rounded-2xl cursor-pointer hover:border-emerald-500/50 group transition">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition">
+              <i data-lucide="code" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="text-sm font-bold">Portfolio Site</div>
+              <div class="text-[11px] opacity-60">Interactive code generation</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Saved Documents Table -->
+      <div class="glass-panel p-6 rounded-3xl border border-white/10 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-bold heading-font">Saved Career Documents</h2>
+            <p class="text-xs opacity-60">Click any document to load into the live editor or export to PDF.</p>
+          </div>
+          <span class="text-xs px-2.5 py-1 rounded-full bg-white/5 border border-white/10 font-mono text-slate-300">
+            Local & Cloud Synced
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="border-b border-white/10 text-slate-400 font-semibold uppercase tracking-wider">
+                <th class="py-3 px-4">Document Title</th>
+                <th class="py-3 px-4">Type</th>
+                <th class="py-3 px-4">Target Role / Company</th>
+                <th class="py-3 px-4">ATS / Match</th>
+                <th class="py-3 px-4">Last Modified</th>
+                <th class="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="dashboard-documents-list" class="divide-y divide-white/5">
+              <!-- Dynamically populated via script.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Quick ATS Audit Tool -->
+      <div class="glass-card p-6 rounded-3xl border border-blue-500/20">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <div>
+            <h3 class="text-base font-bold heading-font flex items-center gap-2">
+              <i data-lucide="crosshair" class="w-4 h-4 text-blue-400"></i>
+              Instant Job Description Match Analyzer
+            </h3>
+            <p class="text-xs opacity-70">Paste any job description from LinkedIn or Indeed to calculate keyword fit against your current profile.</p>
+          </div>
+          <button id="quick-audit-btn" class="gradient-btn px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 self-start">
+            <i data-lucide="search" class="w-3.5 h-3.5"></i> Analyze Fit
+          </button>
+        </div>
+        <textarea id="quick-audit-job-desc" rows="3" class="w-full glass-input rounded-xl p-3 text-xs resize-none" placeholder="Paste target job description requirements here (e.g. Senior Software Engineer with 5+ years TypeScript, GCP, Microservices, Kubernetes)..."></textarea>
+        <div id="quick-audit-result" class="hidden mt-4 p-4 rounded-xl bg-white/5 border border-white/10 text-xs space-y-2">
+          <!-- Dynamic Quick Audit Result -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- 3. RESUME BUILDER VIEW                                              -->
+    <!-- ==================================================================== -->
+    <div id="view-resume" class="page-view hidden space-y-6">
+      <!-- Resume Builder Header & Toolbar -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-white/10">
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-2xl sm:text-3xl font-bold heading-font">ATS Resume Architect</h1>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+              Gemini Powered
+            </span>
+          </div>
+          <p class="text-xs opacity-70 mt-1">Live split-screen builder with automated ATS keyword optimization and jsPDF vector export.</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="resume-fill-sample-btn" class="glass-card px-3.5 py-2 rounded-xl text-xs font-semibold hover:border-blue-500/50 flex items-center gap-1.5 transition">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i> Fill Sample Profile
+          </button>
+          <button id="resume-ai-optimize-btn" class="gradient-btn px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg">
+            <i data-lucide="wand-2" class="w-4 h-4"></i> AI Optimize with Gemini
+          </button>
+          <button id="resume-export-pdf-btn" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 shadow-md transition">
+            <i data-lucide="download" class="w-4 h-4"></i> Export PDF
+          </button>
+          <button id="resume-print-btn" class="glass-card px-3 py-2 rounded-xl text-xs font-semibold hover:border-white/40 flex items-center gap-1.5 transition" title="Print document">
+            <i data-lucide="printer" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Split Layout: Editor (Left) & Live Preview (Right) -->
+      <div class="grid lg:grid-cols-12 gap-8 items-start">
+
+        <!-- LEFT COLUMN: Form Inputs & Tabs (5 Cols) -->
+        <div class="lg:col-span-5 space-y-4">
+          <!-- Editor Tabs -->
+          <div class="flex items-center gap-1 p-1 rounded-2xl glass-panel border border-white/10 overflow-x-auto">
+            <button class="resume-tab-btn px-3 py-1.5 rounded-xl text-xs font-bold text-blue-400 bg-white/10 whitespace-nowrap" data-tab="tab-personal">
+              Personal
+            </button>
+            <button class="resume-tab-btn px-3 py-1.5 rounded-xl text-xs font-semibold opacity-70 hover:opacity-100 whitespace-nowrap" data-tab="tab-experience">
+              Experience
+            </button>
+            <button class="resume-tab-btn px-3 py-1.5 rounded-xl text-xs font-semibold opacity-70 hover:opacity-100 whitespace-nowrap" data-tab="tab-education">
+              Education
+            </button>
+            <button class="resume-tab-btn px-3 py-1.5 rounded-xl text-xs font-semibold opacity-70 hover:opacity-100 whitespace-nowrap" data-tab="tab-skills">
+              Skills
+            </button>
+            <button class="resume-tab-btn px-3 py-1.5 rounded-xl text-xs font-semibold opacity-70 hover:opacity-100 whitespace-nowrap" data-tab="tab-projects">
+              Projects & Certs
+            </button>
+            <button class="resume-tab-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-emerald-400 opacity-90 hover:opacity-100 whitespace-nowrap" data-tab="tab-target">
+              Target ATS ⚡
+            </button>
+          </div>
+
+          <!-- TAB 1: Personal Info -->
+          <div id="tab-personal" class="resume-tab-content glass-card p-5 rounded-2xl space-y-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-blue-400">Candidate Information</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="col-span-2 sm:col-span-1">
+                <label class="block text-[11px] font-medium opacity-70 mb-1">Full Name *</label>
+                <input type="text" id="res-name" class="w-full glass-input rounded-xl px-3 py-2 text-xs" placeholder="Alex Morgan" value="Alex Morgan" />
+              </div>
+              <div class="col-span-2 sm:col-span-1">
+                <label class="block text-[11px] font-medium opacity-70 mb-1">Target Professional Title *</label>
+                <input type="text" id="res-title" class="w-full glass-input rounded-xl px-3 py-2 text-xs" placeholder="Senior Software Engineer" value="Senior Software Engineer" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] font-medium opacity-70 mb-1">Email Address</label>
+                <input type="email" id="res-email" class="w-full glass-input rounded-xl px-3 py-2 text-xs" placeholder="alex.morgan@example.com" value="alex.morgan@example.com" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-medium opacity-70 mb-1">Phone Number</label>
+                <input type="tel" id="res-phone" class="w-full glass-input rounded-xl px-3 py-2 text-xs" placeholder="+1 (555) 019-2834" value="+1 (555) 019-2834" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+              <div>
+                <label class="block text-[11px] font-medium opacity-70 mb-1">Location</label>
+                <input type="text" id="res-location" class="w-full glass-input rounded-xl px-3 py-2 text-xs" placeholder="San Francisco, CA" value="San Francisco, CA" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-medium opacity-70 mb-1">LinkedIn URL</label>
+                <input type="text" id="res-linkedin" class="w-full glass-input rounded-xl px-3 py-2 text-xs" placeholder="linkedin.com/in/alexmorgan" value="linkedin.com/in/alexmorgan" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-medium opacity-70 mb-1">GitHub / Portfolio</label>
+                <input type="text" id="res-github" class="w-full glass-input rounded-xl px-3 py-2 text-xs" placeholder="github.com/alexmorgan" value="github.com/alexmorgan" />
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="text-[11px] font-medium opacity-70">Executive Professional Summary</label>
+                <button type="button" id="btn-ai-rewrite-summary" class="text-[10px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                  <i data-lucide="sparkles" class="w-3 h-3"></i> AI Polish
+                </button>
+              </div>
+              <textarea id="res-summary" rows="4" class="w-full glass-input rounded-xl p-3 text-xs leading-relaxed" placeholder="Write or generate a punchy 3-4 sentence professional summary...">Accomplished Senior Software Engineer with 6+ years of expertise in architecting resilient microservices, high-throughput cloud platforms, and responsive web applications. Proven track record reducing API latencies by 38% and driving technical roadmap execution across cross-functional engineering squads.</textarea>
+            </div>
+          </div>
+
+          <!-- TAB 2: Experience -->
+          <div id="tab-experience" class="resume-tab-content hidden glass-card p-5 rounded-2xl space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-blue-400">Work Experience</h3>
+              <button type="button" id="btn-add-experience" class="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add Position
+              </button>
+            </div>
+
+            <div id="experience-list-container" class="space-y-4">
+              <!-- Dynamically populated experience item cards -->
+            </div>
+          </div>
+
+          <!-- TAB 3: Education -->
+          <div id="tab-education" class="resume-tab-content hidden glass-card p-5 rounded-2xl space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-blue-400">Education & Academics</h3>
+              <button type="button" id="btn-add-education" class="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add School
+              </button>
+            </div>
+
+            <div id="education-list-container" class="space-y-4">
+              <!-- Dynamically populated education items -->
+            </div>
+          </div>
+
+          <!-- TAB 4: Skills -->
+          <div id="tab-skills" class="resume-tab-content hidden glass-card p-5 rounded-2xl space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-blue-400">Skills & Competencies</h3>
+              <button type="button" id="btn-ai-suggest-skills" class="text-[10px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                <i data-lucide="sparkles" class="w-3 h-3"></i> AI Suggest for Role
+              </button>
+            </div>
+            <div>
+              <label class="block text-[11px] font-medium opacity-70 mb-1">Technical Skills & Languages (comma-separated)</label>
+              <textarea id="res-skills-technical" rows="2" class="w-full glass-input rounded-xl p-2.5 text-xs">TypeScript, JavaScript (ES6+), Python, Go, SQL, HTML5, CSS3, Tailwind CSS</textarea>
+            </div>
+            <div>
+              <label class="block text-[11px] font-medium opacity-70 mb-1">Frameworks & Cloud (comma-separated)</label>
+              <textarea id="res-skills-frameworks" rows="2" class="w-full glass-input rounded-xl p-2.5 text-xs">Node.js, Express, React, PostgreSQL, Redis, Docker, Kubernetes, Google Cloud Platform (GCP), AWS, CI/CD</textarea>
+            </div>
+            <div>
+              <label class="block text-[11px] font-medium opacity-70 mb-1">Architecture & Methodologies</label>
+              <textarea id="res-skills-tools" rows="2" class="w-full glass-input rounded-xl p-2.5 text-xs">Microservices, Distributed Systems, REST APIs, GraphQL, System Design, Test-Driven Development (TDD), Agile / Scrum</textarea>
+            </div>
+          </div>
+
+          <!-- TAB 5: Projects & Certifications -->
+          <div id="tab-projects" class="resume-tab-content hidden glass-card p-5 rounded-2xl space-y-5">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-blue-400">Featured Projects</h3>
+                <button type="button" id="btn-add-project" class="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                  <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add Project
+                </button>
+              </div>
+              <div id="projects-list-container" class="space-y-3">
+                <!-- Dynamically populated projects -->
+              </div>
+            </div>
+
+            <div class="space-y-3 pt-4 border-t border-white/10">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-purple-400">Certifications</h3>
+                <button type="button" id="btn-add-certification" class="text-xs font-semibold text-purple-400 hover:text-purple-300 flex items-center gap-1">
+                  <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add Cert
+                </button>
+              </div>
+              <div id="certifications-list-container" class="space-y-2">
+                <!-- Dynamically populated certifications -->
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 6: Target Job & ATS Matching -->
+          <div id="tab-target" class="resume-tab-content hidden glass-card p-5 rounded-2xl space-y-4 border border-emerald-500/30">
+            <div class="flex items-center gap-2">
+              <i data-lucide="target" class="w-4 h-4 text-emerald-400"></i>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400">Target Role & ATS Matching</h3>
+            </div>
+            <p class="text-[11px] opacity-75 leading-relaxed">
+              Paste the job description of your target position. Gemini AI will match keywords, adjust impact metrics, and maximize your ATS score.
+            </p>
+            <div>
+              <label class="block text-[11px] font-medium opacity-70 mb-1">Target Job Title</label>
+              <input type="text" id="target-job-title" class="w-full glass-input rounded-xl px-3 py-2 text-xs" placeholder="e.g. Senior Software Engineer at Google" value="Senior Software Engineer - Cloud Platforms" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-medium opacity-70 mb-1">Target Job Description</label>
+              <textarea id="target-job-description" rows="5" class="w-full glass-input rounded-xl p-3 text-xs leading-relaxed" placeholder="Paste the job requirements, responsibilities, and qualifications here...">Looking for a Senior Software Engineer with strong experience in TypeScript, Node.js, distributed microservices, GCP or AWS, containerization with Docker and Kubernetes, and building high-performance systems. Must have expertise in automated testing, CI/CD, and mentoring junior engineers.</textarea>
+            </div>
+            <button type="button" id="btn-run-ats-matching" class="w-full gradient-btn py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+              <i data-lucide="sparkles" class="w-4 h-4"></i> Run Gemini ATS Keyword Optimization
+            </button>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Live Interactive Resume Preview (7 Cols) -->
+        <div class="lg:col-span-7 space-y-4">
+          <!-- Template Selector & ATS Status Bar -->
+          <div class="glass-card p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
+            <!-- Template switcher -->
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold opacity-70">Template:</span>
+              <div class="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10">
+                <button class="template-btn px-2.5 py-1 rounded-lg text-xs font-bold text-blue-400 bg-white/10" data-template="modern">Modern</button>
+                <button class="template-btn px-2.5 py-1 rounded-lg text-xs font-medium opacity-70 hover:opacity-100" data-template="executive">Executive</button>
+                <button class="template-btn px-2.5 py-1 rounded-lg text-xs font-medium opacity-70 hover:opacity-100" data-template="tech">Tech Mono</button>
+              </div>
+            </div>
+
+            <!-- ATS Score Badge -->
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-semibold opacity-70">ATS Score:</span>
+                <span id="preview-ats-badge" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono">
+                  94 / 100
+                </span>
+              </div>
+              <button id="preview-toggle-ats-panel-btn" class="text-xs text-blue-400 hover:underline flex items-center gap-1">
+                <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i> Feedback
+              </button>
+            </div>
+          </div>
+
+          <!-- ATS Feedback Panel (Collapsible) -->
+          <div id="preview-ats-feedback-panel" class="hidden glass-panel p-4 rounded-2xl border border-emerald-500/20 text-xs space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-emerald-400 flex items-center gap-1.5">
+                <i data-lucide="check-check" class="w-4 h-4"></i> ATS Engine Recommendations
+              </h4>
+              <button id="close-ats-panel-btn" class="opacity-60 hover:opacity-100">&times;</button>
+            </div>
+            <div id="ats-feedback-list" class="space-y-1.5 text-slate-300">
+              <!-- Dynamically populated feedback items -->
+            </div>
+            <div class="pt-2 border-t border-white/10 flex flex-wrap gap-1.5" id="ats-keywords-container">
+              <!-- Matched & missing keyword chips -->
+            </div>
+          </div>
+
+          <!-- The Live Printable Resume Document Canvas -->
+          <div class="w-full overflow-x-auto pb-4">
+            <div id="resume-canvas" class="resume-sheet resume-template-modern">
+              <!-- Dynamically rendered via script.js -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- 4. COVER LETTER GENERATOR VIEW                                      -->
+    <!-- ==================================================================== -->
+    <div id="view-coverletter" class="page-view hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-bold heading-font">AI Cover Letter Generator</h1>
+          <p class="text-xs opacity-70 mt-1">Generate tailored, persuasive cover letters that resonate with hiring managers.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="cl-fill-sample-btn" class="glass-card px-3.5 py-2 rounded-xl text-xs font-semibold hover:border-blue-500/50 flex items-center gap-1.5 transition">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i> Sample Data
+          </button>
+          <button id="cl-generate-btn" class="gradient-btn px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg">
+            <i data-lucide="send" class="w-4 h-4"></i> Generate with Gemini
+          </button>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-12 gap-8 items-start">
+        <!-- Inputs (5 Cols) -->
+        <div class="lg:col-span-5 glass-card p-5 rounded-2xl space-y-4">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-purple-400">Target Role & Company</h3>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-medium opacity-70 mb-1">Target Job Title *</label>
+              <input type="text" id="cl-job-title" class="w-full glass-input rounded-xl px-3 py-2 text-xs" placeholder="e.g. Senior Software Engineer" value="Lead Full-Stack Engineer" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-medium opacity-70 mb-1">Company Name *</label>
+              <input type="text" id="cl-company" class="w-full glass-input rounded-xl px-3 py-2 text-xs" placeholder="e.g. Google" value="Google LLC" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium opacity-70 mb-1">Tone & Communication Style</label>
+            <select id="cl-tone" class="w-full glass-input rounded-xl px-3 py-2 text-xs">
+              <option value="professional" selected>Professional & Strategic</option>
+              <option value="confident">Confident & Direct</option>
+              <option value="enthusiastic">Enthusiastic & High-Energy</option>
+              <option value="executive">Executive & Visionary</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium opacity-70 mb-1">Job Description & Key Requirements *</label>
+            <textarea id="cl-job-desc" rows="6" class="w-full glass-input rounded-xl p-3 text-xs leading-relaxed" placeholder="Paste the job description here...">We are looking for a Lead Full-Stack Engineer to scale our core web application. Requirements: 5+ years with modern JavaScript/TypeScript, React or Node.js, distributed backend systems, and team leadership. The ideal candidate cares deeply about developer productivity, code craft, and user latency.</textarea>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium opacity-70 mb-1">Special Career Achievements to Highlight (Optional)</label>
+            <textarea id="cl-notes" rows="3" class="w-full glass-input rounded-xl p-3 text-xs leading-relaxed" placeholder="e.g. Led migration to microservices saving $200k/year; Mentored 8 engineers...">Led migration of monolithic backend into containerized services, slashing average response times by 40% and saving $180k in annual cloud infrastructure costs.</textarea>
+          </div>
+
+          <button type="button" id="cl-generate-bottom-btn" class="w-full gradient-btn py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+            <i data-lucide="sparkles" class="w-4 h-4"></i> Generate Tailored Cover Letter
+          </button>
+        </div>
+
+        <!-- Output Letter Preview (7 Cols) -->
+        <div class="lg:col-span-7 space-y-4">
+          <div class="glass-card p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-purple-400 uppercase tracking-wider">Generated Letter</span>
+              <span id="cl-status-tag" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono">Ready</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="cl-copy-btn" class="glass-card px-3 py-1.5 rounded-xl text-xs font-semibold hover:border-purple-500/40 flex items-center gap-1.5 transition">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Text
+              </button>
+              <button id="cl-export-pdf-btn" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5 shadow-md transition">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> Export PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- Subject line pill -->
+          <div class="glass-card px-4 py-2.5 rounded-xl flex items-center gap-2 text-xs">
+            <span class="opacity-60 font-semibold">Subject:</span>
+            <span id="cl-subject-text" class="font-medium text-purple-300">Application for Lead Full-Stack Engineer - Alex Morgan</span>
+          </div>
+
+          <!-- Key highlights tags -->
+          <div id="cl-highlights-container" class="flex flex-wrap gap-2">
+            <!-- Dynamic tags -->
+          </div>
+
+          <!-- Letter Canvas -->
+          <div class="glass-panel p-8 rounded-3xl border border-white/10 space-y-4">
+            <textarea id="cl-letter-content" rows="18" class="w-full bg-transparent text-sm leading-relaxed text-slate-100 resize-none focus:outline-none border-none p-0 font-sans"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- 5. LINKEDIN OPTIMIZER VIEW                                          -->
+    <!-- ==================================================================== -->
+    <div id="view-linkedin" class="page-view hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-bold heading-font">LinkedIn Profile Optimizer</h1>
+          <p class="text-xs opacity-70 mt-1">Transform your LinkedIn presence to attract top recruiters and founder inbounds.</p>
+        </div>
+        <button id="li-optimize-btn" class="gradient-btn px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg">
+          <i data-lucide="sparkles" class="w-4 h-4"></i> Optimize Profile with Gemini
+        </button>
+      </div>
+
+      <div class="grid lg:grid-cols-12 gap-8 items-start">
+        <!-- Input Form (5 Cols) -->
+        <div class="lg:col-span-5 glass-card p-5 rounded-2xl space-y-4">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-cyan-400">Current Profile Details</h3>
+
+          <div>
+            <label class="block text-[11px] font-medium opacity-70 mb-1">Target Role / Industry *</label>
+            <input type="text" id="li-target-role" class="w-full glass-input rounded-xl px-3 py-2 text-xs" placeholder="e.g. Senior Software Engineer / Distributed Systems" value="Senior Software Engineer & Distributed Systems Architect" />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium opacity-70 mb-1">Current Headline (Optional)</label>
+            <input type="text" id="li-headline" class="w-full glass-input rounded-xl px-3 py-2 text-xs" placeholder="Software Engineer at Tech Corp" value="Software Engineer @ Modern Enterprise | Building Web Apps" />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium opacity-70 mb-1">Current About / Summary</label>
+            <textarea id="li-about" rows="4" class="w-full glass-input rounded-xl p-3 text-xs leading-relaxed" placeholder="Paste your current LinkedIn summary...">Passionate software engineer building web applications with React, TypeScript and Node.js. Interested in cloud infrastructure, clean code, and working on high-impact products.</textarea>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium opacity-70 mb-1">Career Milestones / Impact Bullets</label>
+            <textarea id="li-history" rows="4" class="w-full glass-input rounded-xl p-3 text-xs leading-relaxed" placeholder="Key achievements to feature...">- Built microservices processing 5M+ daily requests.
+- Decreased infrastructure compute costs by 32%.
+- Mentored 6 engineers and standardized CI/CD across teams.</textarea>
+          </div>
+
+          <button type="button" id="li-optimize-bottom-btn" class="w-full gradient-btn py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+            <i data-lucide="sparkles" class="w-4 h-4"></i> Run Profile Optimization
+          </button>
+        </div>
+
+        <!-- Generated Recommendations (7 Cols) -->
+        <div class="lg:col-span-7 space-y-6">
+          <!-- 3 Headline Options -->
+          <div class="glass-card p-5 rounded-2xl space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                <i data-lucide="award" class="w-4 h-4"></i> High-Converting Headline Variations
+              </h3>
+              <span class="text-[10px] opacity-60">Under 220 chars</span>
+            </div>
+
+            <div id="li-headlines-container" class="space-y-3">
+              <!-- Dynamically populated 3 headline variations with copy buttons -->
+            </div>
+          </div>
+
+          <!-- Story-Driven About Section -->
+          <div class="glass-card p-5 rounded-2xl space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                <i data-lucide="book-open" class="w-4 h-4"></i> Narrative "About" Section
+              </h3>
+              <button id="li-copy-about-btn" class="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Section
+              </button>
+            </div>
+            <textarea id="li-optimized-about" rows="9" class="w-full glass-input rounded-xl p-3 text-xs leading-relaxed resize-none"></textarea>
+          </div>
+
+          <!-- Experience Bullets Rewrite -->
+          <div class="glass-card p-5 rounded-2xl space-y-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+              <i data-lucide="check-circle" class="w-4 h-4"></i> High-Impact Experience Rewrites
+            </h3>
+            <div id="li-bullets-container" class="space-y-2 text-xs">
+              <!-- Dynamic bullet points -->
+            </div>
+          </div>
+
+          <!-- Recruiter Algorithmic Keywords -->
+          <div class="glass-card p-5 rounded-2xl space-y-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+              <i data-lucide="hash" class="w-4 h-4"></i> Recommended Recruiter Search Keywords
+            </h3>
+            <div id="li-skills-container" class="flex flex-wrap gap-2">
+              <!-- Dynamic skill chips -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- 6. PORTFOLIO GENERATOR VIEW                                         -->
+    <!-- ==================================================================== -->
+    <div id="view-portfolio" class="page-view hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-bold heading-font">AI Web Portfolio Generator</h1>
+          <p class="text-xs opacity-70 mt-1">Generate a responsive, personal portfolio website with live preview and downloadable code.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="port-fill-sample-btn" class="glass-card px-3.5 py-2 rounded-xl text-xs font-semibold hover:border-emerald-500/50 flex items-center gap-1.5 transition">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i> Sample Dev Portfolio
+          </button>
+          <button id="port-generate-btn" class="gradient-btn px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg">
+            <i data-lucide="code-2" class="w-4 h-4"></i> Generate Portfolio
+          </button>
+          <button id="port-download-html-btn" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 shadow-md transition">
+            <i data-lucide="download" class="w-4 h-4"></i> Download HTML
+          </button>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-12 gap-8 items-start">
+        <!-- Editor Controls (4 Cols) -->
+        <div class="lg:col-span-4 glass-card p-5 rounded-2xl space-y-4">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400">Portfolio Content</h3>
+
+          <div>
+            <label class="block text-[11px] font-medium opacity-70 mb-1">Developer / Creator Name</label>
+            <input type="text" id="port-name" class="w-full glass-input rounded-xl px-3 py-2 text-xs" value="Alex Morgan" />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium opacity-70 mb-1">Tagline / Subheading</label>
+            <input type="text" id="port-tagline" class="w-full glass-input rounded-xl px-3 py-2 text-xs" value="Full-Stack Engineer & Cloud Architect" />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium opacity-70 mb-1">Design Theme</label>
+            <select id="port-theme" class="w-full glass-input rounded-xl px-3 py-2 text-xs">
+              <option value="cyber-dark" selected>Cyber Dark (Slate & Cyan Glow)</option>
+              <option value="emerald">Emerald Glass (Forest Green & Clean)</option>
+              <option value="sunset">Sunset Violet (Purple & Pink Accent)</option>
+              <option value="clean">Minimal Clean (Light Background)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium opacity-70 mb-1">Bio / About Me</label>
+            <textarea id="port-bio" rows="4" class="w-full glass-input rounded-xl p-3 text-xs leading-relaxed">Passionate software engineer building resilient distributed systems, sub-second API pipelines, and delightful developer experiences. Based in San Francisco, CA.</textarea>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium opacity-70 mb-1">Skills (comma-separated)</label>
+            <input type="text" id="port-skills" class="w-full glass-input rounded-xl px-3 py-2 text-xs" value="TypeScript, Node.js, React, Docker, Kubernetes, PostgreSQL, Redis, GCP, Tailwind CSS" />
+          </div>
+
+          <button type="button" id="port-generate-bottom-btn" class="w-full gradient-btn py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Update Live Portfolio Preview
+          </button>
+        </div>
+
+        <!-- Live Simulated Browser Preview Frame (8 Cols) -->
+        <div class="lg:col-span-8 space-y-4">
+          <!-- Browser Mockup Window -->
+          <div class="rounded-3xl border border-white/15 overflow-hidden shadow-2xl glass-panel">
+            <!-- Browser Chrome Header Bar -->
+            <div class="bg-slate-900/90 px-4 py-3 border-b border-white/10 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
+                <span class="w-3 h-3 rounded-full bg-amber-500/80"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
+              </div>
+              <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-black/40 text-[11px] text-slate-400 font-mono border border-white/5">
+                <i data-lucide="lock" class="w-3 h-3 text-emerald-400"></i>
+                <span id="port-preview-url">https://alexmorgan.dev</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button id="port-open-fullscreen-btn" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium">
+                  <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Fullscreen
+                </button>
+              </div>
+            </div>
+
+            <!-- Simulated Responsive Frame Container -->
+            <div class="w-full h-[650px] overflow-y-auto bg-slate-950 p-6" id="portfolio-interactive-canvas">
+              <!-- Dynamically populated live portfolio elements -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- 7. SETTINGS & FIREBASE DEPLOYMENT VIEW                              -->
+    <!-- ==================================================================== -->
+    <div id="view-settings" class="page-view hidden space-y-8">
+      <div class="pb-4 border-b border-white/10">
+        <h1 class="text-3xl font-bold heading-font">Settings & Firebase Deployment</h1>
+        <p class="text-xs sm:text-sm opacity-70 mt-1">Configure environment settings, inspect Firebase deploy configs, and manage data.</p>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-8">
+        <!-- Card 1: Firebase Hosting & Functions Deployment Hub -->
+        <div class="glass-card p-6 rounded-3xl space-y-5">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center">
+              <i data-lucide="flame" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold heading-font">Firebase Deployment Hub</h3>
+              <p class="text-xs opacity-60">Deploy your full-stack app with Firebase Hosting & Functions</p>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3 text-xs">
+            <div class="font-bold text-amber-300 flex items-center gap-1.5">
+              <i data-lucide="terminal" class="w-4 h-4"></i> 1-Click Deployment CLI Commands
+            </div>
+            <p class="opacity-75 leading-relaxed">
+              Run these commands in your terminal to deploy both the frontend to Firebase Hosting and Gemini API to Firebase Functions:
+            </p>
+            <div class="bg-black/60 rounded-xl p-3 font-mono text-[11px] space-y-1.5 text-slate-300 overflow-x-auto">
+              <div class="flex items-center justify-between text-slate-400 pb-1 border-b border-white/10">
+                <span>Terminal</span>
+                <button id="copy-deploy-cmd-btn" class="hover:text-white flex items-center gap-1 text-[10px]">
+                  <i data-lucide="copy" class="w-3 h-3"></i> Copy
+                </button>
+              </div>
+              <p><span class="text-emerald-400">$</span> npm run build</p>
+              <p><span class="text-emerald-400">$</span> firebase login</p>
+              <p><span class="text-emerald-400">$</span> firebase init</p>
+              <p><span class="text-emerald-400">$</span> firebase deploy</p>
+            </div>
+          </div>
+
+          <!-- Config File Inspector -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold opacity-70">Inspect Generated Configs:</span>
+              <div class="flex items-center gap-1">
+                <button id="view-firebase-json-btn" class="px-2.5 py-1 rounded-lg text-xs font-mono bg-white/10 text-blue-400 font-bold">firebase.json</button>
+                <button id="view-functions-index-btn" class="px-2.5 py-1 rounded-lg text-xs font-mono opacity-70 hover:opacity-100">functions/index.js</button>
+              </div>
+            </div>
+            <pre id="config-code-preview" class="p-3 rounded-xl bg-black/60 border border-white/10 text-[11px] font-mono text-slate-300 max-h-48 overflow-y-auto"></pre>
+          </div>
+        </div>
+
+        <!-- Card 2: AI Engine & Security -->
+        <div class="glass-card p-6 rounded-3xl space-y-5">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center">
+              <i data-lucide="shield" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold heading-font">Security & API Infrastructure</h3>
+              <p class="text-xs opacity-60">Zero client-side secrets & multi-layer defense</p>
+            </div>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+              <div>
+                <div class="font-bold">Gemini API Key Protection</div>
+                <div class="text-[11px] opacity-60 mt-0.5">Stored securely on server/functions environment variables</div>
+              </div>
+              <span class="text-emerald-400 font-bold flex items-center gap-1">
+                <i data-lucide="check" class="w-4 h-4"></i> Enforced
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+              <div>
+                <div class="font-bold">Rate Limiting</div>
+                <div class="text-[11px] opacity-60 mt-0.5">Token bucket protection against request spikes</div>
+              </div>
+              <span class="text-emerald-400 font-bold flex items-center gap-1">
+                <i data-lucide="check" class="w-4 h-4"></i> Active (40 req/min)
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+              <div>
+                <div class="font-bold">XSS Sanitization</div>
+                <div class="text-[11px] opacity-60 mt-0.5">Script tag stripping on all incoming payloads</div>
+              </div>
+              <span class="text-emerald-400 font-bold flex items-center gap-1">
+                <i data-lucide="check" class="w-4 h-4"></i> Active
+              </span>
+            </div>
+          </div>
+
+          <!-- Data Backup & Reset -->
+          <div class="pt-4 border-t border-white/10 space-y-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Local Career Data Storage</h4>
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="settings-export-data-btn" class="glass-card px-3.5 py-2 rounded-xl text-xs font-semibold hover:border-blue-500/40 flex items-center gap-1.5 transition">
+                <i data-lucide="download-cloud" class="w-4 h-4 text-blue-400"></i> Backup Data (JSON)
+              </button>
+              <button id="settings-reset-data-btn" class="glass-card px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:border-rose-500/40 flex items-center gap-1.5 transition">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> Reset to Sample Profile
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Fullscreen Modal for Live Portfolio & Resume Previews -->
+  <div id="fullscreen-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="w-full max-w-5xl h-[90vh] glass-panel rounded-3xl border border-white/20 flex flex-col overflow-hidden shadow-2xl">
+      <div class="px-6 py-4 border-b border-white/10 flex items-center justify-between">
+        <h3 id="modal-title" class="font-bold text-sm heading-font">Live Preview</h3>
+        <button id="modal-close-btn" class="w-8 h-8 rounded-xl glass-card flex items-center justify-center hover:opacity-80 transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div id="modal-content-container" class="flex-1 overflow-y-auto p-6 bg-slate-950">
+        <!-- Rendered preview content -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications Container -->
+  <div id="toast-container"></div>
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-white/10 glass-panel py-6 relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs opacity-60">
+      <div>
+        &copy; 2026 AI Resume & Portfolio Builder. Powered by Google Gemini AI & Firebase.
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="#view-resume" data-nav="resume" class="hover:opacity-100 transition">Resume Builder</a>
+        <a href="#view-coverletter" data-nav="coverletter" class="hover:opacity-100 transition">Cover Letter</a>
+        <a href="#view-portfolio" data-nav="portfolio" class="hover:opacity-100 transition">Portfolio</a>
+        <a href="#view-settings" data-nav="settings" class="hover:opacity-100 transition">Firebase Config</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- App Main Logic (Vanilla JavaScript) -->
+  <script src="/script.js" defer></script>
+</body>
+</html>
